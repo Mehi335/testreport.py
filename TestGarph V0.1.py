@@ -18,6 +18,11 @@ def open_file():
     return filename
 
 
+def select_save_directory(filename="result.txt"):
+    """select directory, where result.txt will be saved."""
+    pass
+
+
 def il_get_value():
     # ***********************************
     # Creates an instance of the class tkinter.Tk.
@@ -44,6 +49,7 @@ def il_get_value():
 
     il_get_window.mainloop()
     return float(mystring.get())
+
 
 def parse_files(il_data_file, temp_data_file):
     """
@@ -115,7 +121,7 @@ def parse_files(il_data_file, temp_data_file):
                       il_1550wavelength_v_string, temp_value)
                 result_line = format(count_il) + " " + format(temp_f_count) + " " + il_date + " " + temp_time + " " + \
                     il_1310wavelength_v_string + " " + il_1550wavelength_v_string + " " + temp_value + "\n"
-                #result_data_file.write(result_line)
+                # result_data_file.write(result_line)
                 value_point = float(il_1310wavelength_v_string), float(il_1550wavelength_v_string), float(temp_value)
                 # max and min values to be stored for both wavelengths
                 # min_il_1310_value, max_il_1310_value, min_il_1550_value, max_il_1550_value
@@ -136,18 +142,21 @@ def parse_files(il_data_file, temp_data_file):
     print("sum of 1550 lines:", count_il_1550)
     print("usable sum of lines:", count_il)
     print("total sum of lines:", count_total)
-    #result_data_file.close()
-    #print(len(result_values))
+    # result_data_file.close()
+    # print(len(result_values))
+
 
 def main():
 
     il_file_name = open_file()
-    print(il_file_name) ## for temporary control
+    print(il_file_name)  # for temporary control
     il_data_file = open(il_file_name, "r")
     temp_file_name = open_file()
-    print(temp_file_name) ## for temporary control
+    print(temp_file_name)  # for temporary control
     temp_data_file = open(temp_file_name, "r")
     il_limit_value = il_get_value()
-    print(il_limit_value) ## for temporary control
+    print(il_limit_value)  # for temporary control
+    parse_files(il_data_file, temp_data_file)
+
 
 main()
