@@ -1,54 +1,57 @@
+import os
 from tkinter import *
-from tkinter.filedialog import askopenfile
+from tkinter.filedialog import askopenfile, askdirectory
 from tkinter import messagebox
 
 
 def open_file():
 
     fo_get_window = Tk()
+    fo_get_window.withdraw()
     fo_get_window.title('TestGraph')
     file = askopenfile(mode='r', filetypes=[('TEXT files', 'txt')])
     if file is not None:
         filename = format(file).split("'")
+        basepath = filename[1]
         filename = filename[1].split("/")
         filename = filename[len(filename) - 1]
+        basepath = basepath[0:(len(basepath) - len(filename))]
     else:
         exit()
     fo_get_window.destroy()
-    return filename
+    return filename, basepath
 
 
-def select_save_directory(filename="result.txt"):
+def select_save_directory(filename="results.txt"):
     """select directory, where result.txt will be saved."""
     pass
 
 
 def il_get_value():
-    # ***********************************
-    # Creates an instance of the class tkinter.Tk.
-    # This creates what is called the "root" window. By conventon,
-    # the root window in Tkinter is usually called "root",
-    # but you are free to call it by any other name.
-
+    """
+    return float value
+    """
     il_get_window = Tk()
     il_get_window.title('TestGraph')
-
-    mystring = StringVar()
+    il_string = StringVar()
     number_float = 0
 
     def getvalue():
         try:
-            number_float = float(mystring.get())
+            number_float = float(il_string.get())
             il_get_window.destroy()
         except:
             messagebox.showerror("Not a number!", "Decimal number format should be 0.00")
 
     Label(il_get_window, text="IL limit for 1 connector (0.08 by default) : ").grid(row=0, sticky=W)  # label
-    Entry(il_get_window, textvariable=mystring).grid(row=0, column=1, sticky=E)  # entry textbox
+    Entry(il_get_window, textvariable=il_string).grid(row=0, column=1, sticky=E)  # entry textbox
     WSignUp = Button(il_get_window, text="Apply", command=getvalue).grid(row=0, column=4, sticky=W)  # button
 
     il_get_window.mainloop()
-    return float(mystring.get())
+    if len(il_string.get()) == 0:
+        return 0.08
+    else:
+        return float(il_string.get())
 
 
 def parse_files(il_data_file, temp_data_file):
@@ -146,17 +149,35 @@ def parse_files(il_data_file, temp_data_file):
     # print(len(result_values))
 
 
+def file_exists_warning(path, file_name="results.txt"):
+    """
+    takes path and filename as a parameter
+    asks about overwrite result file
+    if yes, just return 0
+    if not, return 1, don't update the result file
+    if new file, return full filename including path
+    """
+    pass
+
+
 def main():
 
-    il_file_name = open_file()
-    print(il_file_name)  # for temporary control
+    il_file_name, file_base_path = open_file()
+    il_file_name = file_base_path + il_file_name
     il_data_file = open(il_file_name, "r")
-    temp_file_name = open_file()
-    print(temp_file_name)  # for temporary control
+    temp_file_name, file_base_path = open_file()
     temp_data_file = open(temp_file_name, "r")
-    il_limit_value = il_get_value()
-    print(il_limit_value)  # for temporary control
-    parse_files(il_data_file, temp_data_file)
+    il_limit_value = il_get_value()  # get insertion loss limit value for 1 connector
+    """if os.path.exists("results.txt"):
+        answer = file_exist_warning(file_base_path, 'results.txt')
+        if answer == 0:
+            os.remove("results.txt")
+            result_data_file = open("results.txt", "a")  # results file
+        elif answer = 1:
+            quit()
+        elif len(answer) > 2"""
+
+    # parse_files(il_data_file, temp_data_file)
 
 
 main()
