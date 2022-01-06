@@ -55,7 +55,7 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
     takes 2 files as parameters, parses these and return tuple list as
     values across temperature changing, max and min values for IL at both wavelengths,
     :param il_data_file: Insertion loss log file
-    :param temp_data_file: temperatture changing log file
+    :param temp_data_file: temperature changing log file
     :return: list of tuples [il@1310nm, il@1550nm, tempvalue],
                             max_min_values[min@1310nm, max@1310nm, min@1550nm,max@1550nm]
     """
@@ -73,10 +73,10 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
     value_point = (0, 0, 0)
     max_min_values = (0, 0, 0, 0)  # min_il_1310_value, max_il_1310_value, min_il_1550_value, max_il_1550_value
 
-    #opening files
+    # opening files
 
     il_data_file = open(il_file_name, "r")  # File with IL log data
-    temp_data_file = open(temp_file_name, "r") # File with temperature log data
+    temp_data_file = open(temp_file_name, "r")  # File with temperature log data
     if len(result_file_name) > 1:
         result_data_file = open(result_file_name, "a")
         saveresults = True
@@ -166,19 +166,18 @@ def file_exists_warning(path, file_name="results.txt"):
     filename = list()
     file_exists_window = Tk()
     file_exists_window.withdraw()
-
     message = file_name + " exists, do you wish to overwrite ? press cancel to skip saving result"
     answer = messagebox.askyesnocancel("TestGraph", message)
     file_exists_window.destroy()
-    if answer == True:
+    if answer is True:
         return 0
-    elif answer == False:
+    elif answer is False:
         save_as_window = Tk()
         save_as_window.title('TestGraph')
         save_as_window.withdraw()
         result_file_name = asksaveasfile(mode='w', filetypes=[('Text Document', '*.txt')], defaultextension='txt')
         filename = format(result_file_name).split("'")
-        if result_file_name != None:
+        if result_file_name is not None:
             result_file_name.close()
             file_name = filename[1]
             os.remove(file_name)
@@ -186,11 +185,14 @@ def file_exists_warning(path, file_name="results.txt"):
             return file_name
         else:
             return 1
-    elif answer == None:
+    elif answer is not None:
         return 1
 
 
 def main():
+    graph_values = list()
+    graph_max_min_values = (0, 0, 0, 0)
+
     il_limit_value = il_get_value()  # get insertion loss limit value for 1 connector,
 
     """Main window"""
@@ -202,8 +204,6 @@ def main():
     il_file_name = file_base_path + il_file_name
     temp_file_name, file_base_path = open_file("Select Temperature log file")
     temp_file_name = file_base_path + temp_file_name
-
-    print(file_base_path)
 
     if os.path.exists("results.txt"):
         answer = file_exists_warning(file_base_path, 'results.txt')
@@ -218,8 +218,13 @@ def main():
             print("here should be new result_file_name")
             result_file_name = answer
             print(answer)
+    else:
+        result_file_name = file_base_path + 'results.txt'
 
-    # parse_files(il_file_name, temp_file_name, result_file_name)
+    print(il_file_name, temp_file_name, result_file_name, il_limit_value)
+    graph_values, graph_max_min_values = parse_files(il_file_name, temp_file_name, result_file_name)
+
     root.mainloop()
+
 
 main()
