@@ -20,12 +20,12 @@ class Example(Frame):
         canvas = Canvas(self)
         for x in range(7):
             canvas.create_line(15, x*150-100, 1785, x*150-100, dash=(4,2))
-        canvas.create_text(1750, 40, anchor=W, font=("Arial", 12), text="+60")
-        canvas.create_text(1750, 190, anchor=W, font=("Arial", 12), text="+40")
-        canvas.create_text(1750, 340, anchor=W, font=("Arial", 12), text="+20")
-        canvas.create_text(1750, 490, anchor=W, font=("Arial", 12), text="0")
-        canvas.create_text(1750, 640, anchor=W, font=("Arial", 12), text="-20")
-        canvas.create_text(1750, 790, anchor=W, font=("Arial", 12), text="-40")
+        canvas.create_text(1752, 40, anchor=W, font=("Arial", 12, "bold"), text="+60")
+        canvas.create_text(1752, 190, anchor=W, font=("Arial", 12, "bold"), text="+40")
+        canvas.create_text(1752, 340, anchor=W, font=("Arial", 12, "bold"), text="+20")
+        canvas.create_text(1772, 490, anchor=W, font=("Arial", 12, "bold"), text="0")
+        canvas.create_text(1752, 640, anchor=W, font=("Arial", 12, "bold"), text="-20")
+        canvas.create_text(1752, 790, anchor=W, font=("Arial", 12, "bold"), text="-40")
 
         canvas.pack(fill=BOTH, expand=1)
 
