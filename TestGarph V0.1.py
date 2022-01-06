@@ -1,6 +1,6 @@
 import os
 from tkinter import *
-from tkinter.filedialog import askopenfile, askdirectory
+from tkinter.filedialog import askopenfile, asksaveasfile
 from tkinter import messagebox
 
 
@@ -48,13 +48,14 @@ def il_get_value():
     WSignUp = Button(il_get_window, text="Apply", command=getvalue).grid(row=0, column=4, sticky=W)  # button
 
     il_get_window.mainloop()
+
     if len(il_string.get()) == 0:
         return 0.08
     else:
         return float(il_string.get())
 
 
-def parse_files(il_data_file, temp_data_file):
+def parse_files(il_file_name, temp_file_name, result_file_name, ):
     """
     takes 2 files as parameters, parses these and return tuple list as
     values across temperature changing, max and min values for IL at both wavelengths,
@@ -76,6 +77,14 @@ def parse_files(il_data_file, temp_data_file):
     result_values = list()
     value_point = (0, 0, 0)
     max_min_values = (0, 0, 0, 0)  # min_il_1310_value, max_il_1310_value, min_il_1550_value, max_il_1550_value
+
+    #opening files
+
+    il_data_file = open(il_file_name, "r")  # File with IL log data
+    temp_data_file = open(temp_file_name, "r") # File with temperature log data
+    if len(result_file_name) > 1:
+        result_data_file = open(result_file_name, "a")
+        saveresults = True
 
     while il_data_line != "":
         il_data_line = il_data_file.readline()
@@ -124,7 +133,8 @@ def parse_files(il_data_file, temp_data_file):
                       il_1550wavelength_v_string, temp_value)
                 result_line = format(count_il) + " " + format(temp_f_count) + " " + il_date + " " + temp_time + " " + \
                     il_1310wavelength_v_string + " " + il_1550wavelength_v_string + " " + temp_value + "\n"
-                # result_data_file.write(result_line)
+                if saveresults:
+                    result_data_file.write(result_line)
                 value_point = float(il_1310wavelength_v_string), float(il_1550wavelength_v_string), float(temp_value)
                 # max and min values to be stored for both wavelengths
                 # min_il_1310_value, max_il_1310_value, min_il_1550_value, max_il_1550_value
@@ -157,27 +167,58 @@ def file_exists_warning(path, file_name="results.txt"):
     if not, return 1, don't update the result file
     if new file, return full filename including path
     """
-    pass
+    # variables
+    filename = list()
+    file_exists_window = Tk()
+    file_exists_window.withdraw()
+
+    message = file_name + " exists, do you wish to overwrite ? press cancel to skip saving result"
+    answer = messagebox.askyesnocancel("TestGraph", message)
+    file_exists_window.destroy()
+    if answer == True:
+        return 0
+    elif answer == False:
+        save_as_window = Tk()
+        save_as_window.title('TestGraph')
+        save_as_window.withdraw()
+        result_file_name = asksaveasfile(mode='w', filetypes=[('Text Document', '*.txt')], defaultextension='txt')
+        filename = format(result_file_name).split("'")
+        if result_file_name != None:
+            result_file_name.close()
+            file_name = filename[1]
+            os.remove(file_name)
+            file_name = file_name if ".txt" in file_name else file_name + ".txt"
+            return file_name
+        else:
+            return 1
+    elif answer == None:
+        return 1
 
 
 def main():
 
     il_file_name, file_base_path = open_file()
     il_file_name = file_base_path + il_file_name
-    il_data_file = open(il_file_name, "r")
     temp_file_name, file_base_path = open_file()
-    temp_data_file = open(temp_file_name, "r")
-    il_limit_value = il_get_value()  # get insertion loss limit value for 1 connector
-    """if os.path.exists("results.txt"):
-        answer = file_exist_warning(file_base_path, 'results.txt')
+    temp_file_name = file_base_path + temp_file_name
+    il_limit_value = il_get_value()  # get insertion loss limit value for 1 connector,
+    print(file_base_path)
+
+    if os.path.exists("results.txt"):
+        answer = file_exists_warning(file_base_path, 'results.txt')
         if answer == 0:
             os.remove("results.txt")
-            result_data_file = open("results.txt", "a")  # results file
-        elif answer = 1:
+            result_file_name = file_base_path + "results.txt"
+            #  # file handling to parse_files
+        elif answer == 1:
+            result_file_name = ""   # no need to save any results
             quit()
-        elif len(answer) > 2"""
+        elif len(answer) > 2:
+            print("here should be new result_file_name")
+            result_file_name = answer
+            print(answer)
 
-    # parse_files(il_data_file, temp_data_file)
+    # parse_files(il_file_name, temp_file_name, result_file_name)
 
 
 main()
