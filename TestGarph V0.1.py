@@ -4,12 +4,12 @@ from tkinter.filedialog import askopenfile, asksaveasfile
 from tkinter import messagebox
 
 
-def open_file():
-
+def open_file(message):
+    dialog_title = message
     fo_get_window = Tk()
     fo_get_window.withdraw()
     fo_get_window.title('TestGraph')
-    file = askopenfile(mode='r', filetypes=[('TEXT files', 'txt')])
+    file = askopenfile(mode='r', filetypes=[('TEXT files', 'txt')], title=dialog_title)
     if file is not None:
         filename = format(file).split("'")
         basepath = filename[1]
@@ -20,11 +20,6 @@ def open_file():
         exit()
     fo_get_window.destroy()
     return filename, basepath
-
-
-def select_save_directory(filename="results.txt"):
-    """select directory, where result.txt will be saved."""
-    pass
 
 
 def il_get_value():
@@ -196,12 +191,18 @@ def file_exists_warning(path, file_name="results.txt"):
 
 
 def main():
-
-    il_file_name, file_base_path = open_file()
-    il_file_name = file_base_path + il_file_name
-    temp_file_name, file_base_path = open_file()
-    temp_file_name = file_base_path + temp_file_name
     il_limit_value = il_get_value()  # get insertion loss limit value for 1 connector,
+
+    """Main window"""
+    root = Tk()
+    root.title('Temperature cycling test log file parser')
+    root.resizable(False, False)
+    root.geometry('1800x900')
+    il_file_name, file_base_path = open_file("Select Insertion Loss log file")
+    il_file_name = file_base_path + il_file_name
+    temp_file_name, file_base_path = open_file("Select Temperature log file")
+    temp_file_name = file_base_path + temp_file_name
+
     print(file_base_path)
 
     if os.path.exists("results.txt"):
@@ -219,6 +220,6 @@ def main():
             print(answer)
 
     # parse_files(il_file_name, temp_file_name, result_file_name)
-
+    root.mainloop()
 
 main()
