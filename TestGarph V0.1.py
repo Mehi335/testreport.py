@@ -1,10 +1,24 @@
 import os
 from tkinter import *
-from tkinter.filedialog import askopenfile, asksaveasfile
 from tkinter import messagebox
+from tkinter.filedialog import askopenfile, asksaveasfile
+from easygui import *
+
+
+global value_point
+value_point = (0, 0, 0)
+global max_min_values
+max_min_values = (0, 0, 0, 0)  # min_il_1310_value, max_il_1310_value, min_il_1550_value, max_il_1550_value
+global result_values
+result_values = list()
 
 
 def open_file(message):
+    """
+    fileopen dialog
+    :param message: what log file to open
+    :return: filename and base path
+    """
     dialog_title = message
     fo_get_window = Tk()
     fo_get_window.withdraw()
@@ -24,30 +38,56 @@ def open_file(message):
 
 def il_get_value():
     """
-    return float value
+        asks user to enter IL change limit for 1 connector
+        :return: float value of IL change  limit for 1 connector
     """
     il_get_window = Tk()
     il_get_window.title('TestGraph')
-    il_string = StringVar()
+    mystring = StringVar()
     number_float = 0
 
     def getvalue():
         try:
-            number_float = float(il_string.get())
+            number_float = float(mystring.get())
             il_get_window.destroy()
         except:
             messagebox.showerror("Not a number!", "Decimal number format should be 0.00")
 
     Label(il_get_window, text="IL limit for 1 connector (0.08 by default) : ").grid(row=0, sticky=W)  # label
-    Entry(il_get_window, textvariable=il_string).grid(row=0, column=1, sticky=E)  # entry textbox
+    Entry(il_get_window, textvariable=mystring).grid(row=0, column=1, sticky=E)  # entry textbox
     WSignUp = Button(il_get_window, text="Apply", command=getvalue).grid(row=0, column=4, sticky=W)  # button
 
     il_get_window.mainloop()
+    return float(mystring.get())
 
-    if len(il_string.get()) == 0:
-        return 0.08
+
+def conn_amount_value():
+    """
+    asks use to enter amount of connectors in DUT
+    return: int value as amount of connectors in DUT
+    """
+    conn_amount_window = Tk()
+    conn_amount_window.title('TestGraph')
+    conn_amount_string = StringVar()
+    number_int = 0
+
+    def getvalue():
+        try:
+            number_int = int(conn_amount_string.get())
+            conn_amount_window.destroy()
+        except:
+            messagebox.showerror("Not a number!", "Amount of connectors should be Int")
+
+    Label(conn_amount_window, text="Amount of connectors in DUT : ").grid(row=0, sticky=W)  # label
+    Entry(conn_amount_window, textvariable=conn_amount_string).grid(row=0, column=1, sticky=E)  # entry textbox
+    WSignUp = Button(conn_amount_window, text="Apply", command=getvalue).grid(row=0, column=4, sticky=W)  # button
+
+    conn_amount_window.mainloop()
+
+    if len(conn_amount_string.get()) == 0:
+        return 24
     else:
-        return float(il_string.get())
+        return int(conn_amount_string.get())
 
 
 def parse_files(il_file_name, temp_file_name, result_file_name, ):
@@ -60,6 +100,7 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
                             max_min_values[min@1310nm, max@1310nm, min@1550nm,max@1550nm]
     """
     # variables
+    saveresults = False
     il_data_line = temp_data_line = " "
     count_il = temp_f_count = 0  # counted source lines
     count_il_1310 = count_il_1550 = count_total = 0  # counted result lines
@@ -69,12 +110,12 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
     result_line = ""
     temperature_hour = temperature_minute = il_minute = il_hour = ""  # temp ann il time strings
     pair_results = success = 0  # flags
-    result_values = list()
-    value_point = (0, 0, 0)
-    max_min_values = (0, 0, 0, 0)  # min_il_1310_value, max_il_1310_value, min_il_1550_value, max_il_1550_value
+
+    global value_point
+    global max_min_values
+    global result_values
 
     # opening files
-
     il_data_file = open(il_file_name, "r")  # File with IL log data
     temp_data_file = open(temp_file_name, "r")  # File with temperature log data
     if len(result_file_name) > 1:
@@ -124,13 +165,14 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
                     except:
                         break
 
-                print(count_il, temp_f_count, il_date, temp_date, il_time, temp_time, il_1310wavelength_v_string,
-                      il_1550wavelength_v_string, temp_value)
+                # print(count_il, temp_f_count, il_date, temp_date, il_time, temp_time, il_1310wavelength_v_string,
+                #       il_1550wavelength_v_string, temp_value)
                 result_line = format(count_il) + " " + format(temp_f_count) + " " + il_date + " " + temp_time + " " + \
                     il_1310wavelength_v_string + " " + il_1550wavelength_v_string + " " + temp_value + "\n"
                 if saveresults:
                     result_data_file.write(result_line)
                 value_point = float(il_1310wavelength_v_string), float(il_1550wavelength_v_string), float(temp_value)
+
                 # max and min values to be stored for both wavelengths
                 # min_il_1310_value, max_il_1310_value, min_il_1550_value, max_il_1550_value
 
@@ -150,8 +192,12 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
     print("sum of 1550 lines:", count_il_1550)
     print("usable sum of lines:", count_il)
     print("total sum of lines:", count_total)
-    # result_data_file.close()
-    # print(len(result_values))
+    if saveresults:
+        result_data_file.close()
+
+    print(len(result_values))
+    for i in result_values:
+        print(i)
 
 
 def file_exists_warning(path, file_name="results.txt"):
@@ -185,21 +231,28 @@ def file_exists_warning(path, file_name="results.txt"):
             return file_name
         else:
             return 1
-    elif answer is not None:
+    elif answer is None:
         return 1
 
 
 def main():
+
+    global value_point
+    global max_min_values
+
     graph_values = list()
     graph_max_min_values = (0, 0, 0, 0)
 
     il_limit_value = il_get_value()  # get insertion loss limit value for 1 connector,
 
-    """Main window"""
+    conn_amount = conn_amount_value()  # get amount of connectors in DUT
+
+    # Main window
     root = Tk()
     root.title('Temperature cycling test log file parser')
     root.resizable(False, False)
-    root.geometry('1800x900')
+    root.geometry('900x600')
+
     il_file_name, file_base_path = open_file("Select Insertion Loss log file")
     il_file_name = file_base_path + il_file_name
     temp_file_name, file_base_path = open_file("Select Temperature log file")
@@ -213,17 +266,18 @@ def main():
             #  # file handling to parse_files
         elif answer == 1:
             result_file_name = ""   # no need to save any results
-            quit()
+            # quit()
         elif len(answer) > 2:
             print("here should be new result_file_name")
             result_file_name = answer
             print(answer)
     else:
         result_file_name = file_base_path + 'results.txt'
-
+    root.withdraw()
     print(il_file_name, temp_file_name, result_file_name, il_limit_value)
-    graph_values, graph_max_min_values = parse_files(il_file_name, temp_file_name, result_file_name)
+    parse_files(il_file_name, temp_file_name, result_file_name)
 
+    root.destroy()
     root.mainloop()
 
 
