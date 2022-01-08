@@ -286,6 +286,8 @@ def main():
         if x < 6:
             canvas.create_text(1740, (x + 1) * 150 - 50, anchor=W, font=("Arial", 12, "bold"),
                                text=temperature_label[x])
+    for x in range(24):
+        canvas.create_line(100, 130 + x * 30, 1720, 130 + x * 30, dash=(1, 9))
     canvas.pack(fill=BOTH, expand=1)
 
     il_file_name, file_base_path = open_file("Select Insertion Loss log file")
