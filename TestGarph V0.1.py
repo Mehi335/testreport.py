@@ -2,11 +2,10 @@ import os
 from tkinter import *
 from tkinter import messagebox
 from tkinter.filedialog import askopenfile, asksaveasfile
-from easygui import *
+from tkinter import Tk, Canvas, Frame, BOTH
+from math import ceil, floor
 
 
-global value_point
-value_point = (0, 0, 0)
 global max_min_values
 max_min_values = (0, 0, 0, 0)  # min_il_1310_value, max_il_1310_value, min_il_1550_value, max_il_1550_value
 global result_values
@@ -43,7 +42,7 @@ def il_get_value():
     """
     il_get_window = Tk()
     il_get_window.title('TestGraph')
-    mystring = StringVar()
+    mystring = StringVar(il_get_window, value='0.08')
     number_float = 0
 
     def getvalue():
@@ -68,7 +67,7 @@ def conn_amount_value():
     """
     conn_amount_window = Tk()
     conn_amount_window.title('TestGraph')
-    conn_amount_string = StringVar()
+    conn_amount_string = StringVar(conn_amount_window, value='24')
     number_int = 0
 
     def getvalue():
@@ -88,6 +87,31 @@ def conn_amount_value():
         return 24
     else:
         return int(conn_amount_string.get())
+
+
+def graph_window_calc(il_limit_value, conn_amount):
+
+    global max_min_values
+
+    # max_min_values = (0, 6.34, 0, 23.98)
+    delta_1310 = max_min_values[1] - max_min_values[0]
+    delta_1550 = max_min_values[3] - max_min_values[2]
+
+    if delta_1310  > delta_1550:
+        max_value = ceil(delta_1310 + max_min_values[0])
+        min_value = floor(max_min_values[0])
+    else:
+        max_value = ceil(delta_1550 + max_min_values[2])
+        min_value = floor(max_min_values[2])
+    dia_value = max_value - min_value
+    test_limit = il_limit_value * conn_amount + min_value
+
+    while (max_value % 5) != 0:
+        max_value = max_value + 1
+    while (min_value % 5) != 0:
+        min_value = min_value - 1
+    dia_value = max_value - min_value
+    grid_step = dia_value / 5
 
 
 def parse_files(il_file_name, temp_file_name, result_file_name, ):
@@ -111,7 +135,6 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
     temperature_hour = temperature_minute = il_minute = il_hour = ""  # temp ann il time strings
     pair_results = success = 0  # flags
 
-    global value_point
     global max_min_values
     global result_values
 
@@ -196,9 +219,6 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
         result_data_file.close()
 
     print(len(result_values))
-    for i in result_values:
-        print(i)
-
 
 def file_exists_warning(path, file_name="results.txt"):
     """
@@ -237,21 +257,31 @@ def file_exists_warning(path, file_name="results.txt"):
 
 def main():
 
-    global value_point
     global max_min_values
-
-    graph_values = list()
-    graph_max_min_values = (0, 0, 0, 0)
+    global result_values
+    window_height = 900
+    window_width = 1800
 
     il_limit_value = il_get_value()  # get insertion loss limit value for 1 connector,
-
     conn_amount = conn_amount_value()  # get amount of connectors in DUT
 
     # Main window
     root = Tk()
     root.title('Temperature cycling test log file parser')
     root.resizable(False, False)
-    root.geometry('900x600')
+    root.geometry('1800x900')
+    # main windows grid
+    canvas = Canvas()
+    for x in range(7):
+        canvas.create_line(15, x * 150 - 50, 1785, x * 150 - 50, dash=(8, 2))
+    canvas.create_text(1752, 90, anchor=W, font=("Arial", 12, "bold"), text="+60")
+    canvas.create_text(1752, 240, anchor=W, font=("Arial", 12, "bold"), text="+40")
+    canvas.create_text(1752, 390, anchor=W, font=("Arial", 12, "bold"), text="+20")
+    canvas.create_text(1772, 540, anchor=W, font=("Arial", 12, "bold"), text="0")
+    canvas.create_text(1752, 690, anchor=W, font=("Arial", 12, "bold"), text="-20")
+    canvas.create_text(1752, 840, anchor=W, font=("Arial", 12, "bold"), text="-40")
+
+    canvas.pack(fill=BOTH, expand=1)
 
     il_file_name, file_base_path = open_file("Select Insertion Loss log file")
     il_file_name = file_base_path + il_file_name
@@ -273,12 +303,13 @@ def main():
             print(answer)
     else:
         result_file_name = file_base_path + 'results.txt'
-    root.withdraw()
-    print(il_file_name, temp_file_name, result_file_name, il_limit_value)
+    #root.withdraw()
     parse_files(il_file_name, temp_file_name, result_file_name)
+    graph_window_calc(il_limit_value, conn_amount)
 
     root.destroy()
     root.mainloop()
+
 
 
 main()
