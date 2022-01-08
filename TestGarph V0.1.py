@@ -89,11 +89,11 @@ def conn_amount_value():
         return int(conn_amount_string.get())
 
 
-def graph_window_calc(il_limit_value, conn_amount):
+def graph_window_calc(il_limit_value, conn_amount, window_height):
+
 
     global max_min_values
 
-    # max_min_values = (0, 6.34, 0, 23.98)
     delta_1310 = max_min_values[1] - max_min_values[0]
     delta_1550 = max_min_values[3] - max_min_values[2]
 
@@ -112,6 +112,10 @@ def graph_window_calc(il_limit_value, conn_amount):
         min_value = min_value - 1
     dia_value = max_value - min_value
     grid_step = dia_value / 5
+
+    test_limit_x = ceil((window_height - 150)/ dia_value * (test_limit - min_value)) + 50
+
+    return min_value, grid_step, test_limit_x, test_limit,
 
 
 def parse_files(il_file_name, temp_file_name, result_file_name, ):
@@ -220,6 +224,7 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
 
     print(len(result_values))
 
+
 def file_exists_warning(path, file_name="results.txt"):
     """
     takes path and filename as a parameter
@@ -261,26 +266,26 @@ def main():
     global result_values
     window_height = 900
     window_width = 1800
+    x_values = list()
+    temperature_label = list()
+    root_window_title = 'Temperature cycling test log file parser'
 
     il_limit_value = il_get_value()  # get insertion loss limit value for 1 connector,
     conn_amount = conn_amount_value()  # get amount of connectors in DUT
 
     # Main window
     root = Tk()
-    root.title('Temperature cycling test log file parser')
+    root.title(root_window_title) # todo - put in title IL-data filename and test date
     root.resizable(False, False)
-    root.geometry('1800x900')
+    root.geometry("{}x{}".format(window_width, window_height))
     # main windows grid
     canvas = Canvas()
+    temperature_label = ("+60 °C", "+40 °C", "+20 °C", "0 °C", "-20 °C", "-40 °C")
     for x in range(7):
-        canvas.create_line(15, x * 150 - 50, 1785, x * 150 - 50, dash=(8, 2))
-    canvas.create_text(1752, 90, anchor=W, font=("Arial", 12, "bold"), text="+60")
-    canvas.create_text(1752, 240, anchor=W, font=("Arial", 12, "bold"), text="+40")
-    canvas.create_text(1752, 390, anchor=W, font=("Arial", 12, "bold"), text="+20")
-    canvas.create_text(1772, 540, anchor=W, font=("Arial", 12, "bold"), text="0")
-    canvas.create_text(1752, 690, anchor=W, font=("Arial", 12, "bold"), text="-20")
-    canvas.create_text(1752, 840, anchor=W, font=("Arial", 12, "bold"), text="-40")
-
+        canvas.create_line(100, x * 150 - 50, 1720, x * 150 - 50, dash=(8, 2))
+        if x < 6:
+            canvas.create_text(1740, (x + 1) * 150 - 50, anchor=W, font=("Arial", 12, "bold"),
+                               text=temperature_label[x])
     canvas.pack(fill=BOTH, expand=1)
 
     il_file_name, file_base_path = open_file("Select Insertion Loss log file")
@@ -304,12 +309,24 @@ def main():
     else:
         result_file_name = file_base_path + 'results.txt'
     #root.withdraw()
+    """global max_min_values and  global result_values will be filled with values
+    in function parse_files below"""
     parse_files(il_file_name, temp_file_name, result_file_name)
-    graph_window_calc(il_limit_value, conn_amount)
+    # x values list min_value, grid_step, test_limit_x, test_limit,
+    x_values = graph_window_calc(il_limit_value, conn_amount, window_height)
+    canvas.create_line(100, 900 - x_values[2], 1720, 900 - x_values[2], fill="red")
+    txt_value = str(x_values[3]) + "dB"
+    canvas.create_text(35, 900 - x_values[2], anchor=W, font=("Arial", 12, "bold") , fill ="red", text=txt_value)
+    txt_value = "Test limit value"
+    canvas.create_text(5, 900 - x_values[2] - 20, anchor=W, font=("Arial", 12, "bold"), fill="red", text=txt_value)
+    for x in range(6):
+        txt_value = "{price:.2f} dB"
+        mes = txt_value.format(price = (x_values[0] + x_values[1] * x))
+        canvas.create_text(35, 850 - x*150, anchor=W, font=("Arial", 12, "bold"), fill="black", text=mes)
+        print(mes)
 
-    root.destroy()
+    #root.destroy()
     root.mainloop()
-
 
 
 main()
