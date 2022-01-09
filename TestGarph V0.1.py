@@ -7,9 +7,11 @@ from math import ceil, floor
 
 
 global max_min_values
-max_min_values = (0, 0, 0, 0)  # min_il_1310_value, max_il_1310_value, min_il_1550_value, max_il_1550_value
+max_min_values = (100, 0, 100, 0)  # min_il_1310_value, max_il_1310_value, min_il_1550_value, max_il_1550_value
 global result_values
 result_values = list()
+global test_started
+test_started = ''
 
 
 def open_file(message):
@@ -100,11 +102,12 @@ def graph_window_calc(il_limit_value, conn_amount, window_height):
     if delta_1310  > delta_1550:
         max_value = ceil(delta_1310 + max_min_values[0])
         min_value = floor(max_min_values[0])
+        test_limit = il_limit_value * conn_amount + max_min_values[0]
     else:
         max_value = ceil(delta_1550 + max_min_values[2])
         min_value = floor(max_min_values[2])
+        test_limit = il_limit_value * conn_amount + max_min_values[2]
     dia_value = max_value - min_value
-    test_limit = il_limit_value * conn_amount + min_value
 
     while (max_value % 5) != 0:
         max_value = max_value + 1
@@ -141,6 +144,7 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
 
     global max_min_values
     global result_values
+    global test_started
 
     # opening files
     il_data_file = open(il_file_name, "r")  # File with IL log data
@@ -165,6 +169,8 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
             if pair_results == 1:  # both of IL results loaded
                 pair_results = 0
                 il_date = il_line_parsed_to_list[0]
+                if test_started == '':
+                    test_started = il_date
                 il_line_time_part_list = il_line_parsed_to_list[1].split(":")
                 il_hour = int(il_line_time_part_list[0])
                 il_minute = int(il_line_time_part_list[1])
@@ -222,7 +228,7 @@ def parse_files(il_file_name, temp_file_name, result_file_name, ):
     if saveresults:
         result_data_file.close()
 
-    print(len(result_values))
+    print(max_min_values)
 
 
 def file_exists_warning(path, file_name="results.txt"):
@@ -261,7 +267,7 @@ def file_exists_warning(path, file_name="results.txt"):
 
 
 def main():
-
+    global test_started
     global max_min_values
     global result_values
     window_height = 900
@@ -288,6 +294,15 @@ def main():
                                text=temperature_label[x])
     for x in range(24):
         canvas.create_line(100, 130 + x * 30, 1720, 130 + x * 30, dash=(1, 9))
+    # legend
+    canvas.create_rectangle(30, 10, 615, 84, width=2, outline='gray')
+    canvas.create_text(38, 24, anchor=W, font=("Arial", 12, "bold"), fill="black", text="Legend:        ")
+    canvas.create_text(108, 24, anchor=W, font=("Arial", 12, "bold"), fill="Green", text="Insertion Loss dB @1310 nm")
+    canvas.create_oval(348, 24, 608, 24, width=3, outline='green')
+    canvas.create_text(108, 48, anchor=W, font=("Arial", 12, "bold"), fill="Blue", text="Insertion Loss dB @1550 nm")
+    canvas.create_oval(348, 48, 608, 48, width=3, outline='blue')
+    canvas.create_text(108, 72, anchor=W, font=("Arial", 12, "bold"), fill="#476042", text="Temperature")
+    canvas.create_oval(348, 72, 608, 72, width=3, outline='#476042')
     canvas.pack(fill=BOTH, expand=1)
 
     il_file_name, file_base_path = open_file("Select Insertion Loss log file")
@@ -310,12 +325,16 @@ def main():
             print(answer)
     else:
         result_file_name = file_base_path + 'results.txt'
-    #root.withdraw()
+
     """global max_min_values and  global result_values will be filled with values
     in function parse_files below"""
     parse_files(il_file_name, temp_file_name, result_file_name)
+    root_window_title = 'Temperature cycling test log file parser. Test started at : ' + test_started
+    root.title(root_window_title)
     # x values list min_value, grid_step, test_limit_x, test_limit,
     x_values = graph_window_calc(il_limit_value, conn_amount, window_height)
+    min_value, grid_step, test_limit_x, test_limit = x_values
+    print(min_value, grid_step, test_limit_x, test_limit)
     canvas.create_line(100, 900 - x_values[2], 1720, 900 - x_values[2], fill="red")
     txt_value = str(x_values[3]) + "dB"
     canvas.create_text(35, 900 - x_values[2], anchor=W, font=("Arial", 12, "bold") , fill ="red", text=txt_value)
@@ -325,7 +344,35 @@ def main():
         txt_value = "{price:.2f} dB"
         mes = txt_value.format(price = (x_values[0] + x_values[1] * x))
         canvas.create_text(35, 850 - x*150, anchor=W, font=("Arial", 12, "bold"), fill="black", text=mes)
-        print(mes)
+    # no draw grafics
+    dB_value= 150/grid_step
+    temp_value = 150/20
+    factor = ceil(len(result_values)/1500)
+    y_offset = 100
+    current_point = current_y_point = prev_y_point = prev_x_1310_db_point = prev_x_1550_db_point = x_temp_point = prev_x_temp_point = 0
+    while current_point < len(result_values):
+        x_1310_db_point, x_1550_db_point, x_temp_value_point = result_values[current_point]
+        #calculating x coordinates
+        x_1310_db_point = 850 - ceil(dB_value * x_1310_db_point)
+        x_1550_db_point = 850 - ceil(dB_value * x_1550_db_point)
+        x_temp_point = 850 - ceil(temp_value * (x_temp_value_point + 40))
+        current_y_point = y_offset + floor(current_point/factor)
+        if current_point < 1:  # creat ovals at start
+            canvas.create_oval(current_y_point, x_1310_db_point, current_y_point + 1, x_1310_db_point + 1, width=3, outline='green')
+            canvas.create_oval(current_y_point, x_1550_db_point, current_y_point + 1, x_1550_db_point + 1, width=3, outline='blue')
+            canvas.create_oval(current_y_point, x_temp_point, current_y_point + 1, x_temp_point + 1, width=3, outline="#476042")
+        else: # create lines from previous point
+            canvas.create_line(prev_y_point, prev_x_1310_db_point, current_y_point, x_1310_db_point, width=3, fill="green")
+            canvas.create_line(prev_y_point, prev_x_1550_db_point, current_y_point, x_1550_db_point, width=3, fill="blue")
+            canvas.create_line(prev_y_point, prev_x_temp_point, current_y_point, x_temp_point, width=3, fill="#476042")
+        # store pervious value
+        prev_x_1310_db_point = x_1310_db_point
+        prev_x_1550_db_point = x_1550_db_point
+        prev_x_temp_point = x_temp_point
+        prev_y_point = current_y_point
+        current_point = current_point + factor  # cycle while counter
+
+    print(test_started)
 
     #root.destroy()
     root.mainloop()
