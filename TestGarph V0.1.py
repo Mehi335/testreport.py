@@ -295,15 +295,21 @@ def main():
     for x in range(24):
         canvas.create_line(100, 130 + x * 30, 1720, 130 + x * 30, dash=(1, 9))
     # legend
-    canvas.create_rectangle(30, 10, 615, 84, width=2, outline='gray')
+    canvas.create_rectangle(30, 10, 515, 84, width=2, outline='gray')
     canvas.create_text(38, 24, anchor=W, font=("Arial", 12, "bold"), fill="black", text="Legend:        ")
     canvas.create_text(108, 24, anchor=W, font=("Arial", 12, "bold"), fill="Green", text="Insertion Loss dB @1310 nm")
-    canvas.create_oval(348, 24, 608, 24, width=3, outline='green')
+    canvas.create_oval(348, 24, 508, 24, width=3, outline='green')
     canvas.create_text(108, 48, anchor=W, font=("Arial", 12, "bold"), fill="Blue", text="Insertion Loss dB @1550 nm")
-    canvas.create_oval(348, 48, 608, 48, width=3, outline='blue')
+    canvas.create_oval(348, 48, 508, 48, width=3, outline='blue')
     canvas.create_text(108, 72, anchor=W, font=("Arial", 12, "bold"), fill="#476042", text="Temperature")
-    canvas.create_oval(348, 72, 608, 72, width=3, outline='#476042')
+    canvas.create_oval(348, 72, 508, 72, width=3, outline='#476042')
     canvas.pack(fill=BOTH, expand=1)
+
+    # delta values and limits
+    canvas.create_rectangle(1400, 10, 1780, 84, width=2, outline='gray')
+    canvas.create_text(1408, 24, anchor=W, font=("Arial", 12, "bold"), fill="Green", text="IL Delta range @1310 nm    :")
+    canvas.create_text(1408, 48, anchor=W, font=("Arial", 12, "bold"), fill="Blue", text="IL Delta range @1310 nm    :")
+    canvas.create_text(1408, 72, anchor=W, font=("Arial", 12, "bold"), fill="Red", text="Max Allowed IL Delta range:")
 
     il_file_name, file_base_path = open_file("Select Insertion Loss log file")
     il_file_name = file_base_path + il_file_name
@@ -331,6 +337,14 @@ def main():
     parse_files(il_file_name, temp_file_name, result_file_name)
     root_window_title = 'Temperature cycling test log file parser. Test started at : ' + test_started
     root.title(root_window_title)
+    #show limits
+    limits1310 = str(max_min_values[1] - max_min_values[0])
+    canvas.create_text(1618, 24, anchor=W, font=("Arial", 12, "bold"), fill="Green", text=limits1310)
+    limits1550 = str(max_min_values[3] - max_min_values[2])
+    canvas.create_text(1618, 48, anchor=W, font=("Arial", 12, "bold"), fill="Blue", text=limits1550)
+    allowed_delta = il_limit_value * conn_amount
+    canvas.create_text(1618, 72, anchor=W, font=("Arial", 12, "bold"), fill="Red", text=allowed_delta)
+
     # x values list min_value, grid_step, test_limit_x, test_limit,
     x_values = graph_window_calc(il_limit_value, conn_amount, window_height)
     min_value, grid_step, test_limit_x, test_limit = x_values
